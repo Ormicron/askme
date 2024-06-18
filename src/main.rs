@@ -1,7 +1,13 @@
-use std::{env, io};
+use std::{env, fs::{self, File}, io::{self, Write}, path::Path};
 
+static CONFIG_FILE:&str = "askme.conf";
 
 fn main() {
+
+    std::panic::set_hook(Box::new(|_                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | {
+        //https://stackoverflow.com/questions/77826272/disable-note-run-with-rust-backtrace-1-environment-variable-to-display-a-bac/
+        //全局抑制Panic
+    }));
 
     let args :Vec<String> = env::args().collect();
 
@@ -11,7 +17,7 @@ fn main() {
         let sigle_hash = args.get(args.len()-1).unwrap();
         vec_raw.push(sigle_hash.to_string());
     }else{
-        println!("[*] 输入要解密的哈希,Ctrl+D 结束.");
+        println!("[*] 输入要解密的哈希,以行分割,Ctrl+D 结束.");
         let lines = io::stdin().lines();
         for line in lines {
             vec_raw.push(line.unwrap());
@@ -29,19 +35,64 @@ fn main() {
 
 }
 
+fn parse_config()->(String,String){
+    if !Path::new(CONFIG_FILE).exists(){
+        create_config_file(&CONFIG_FILE);
+    }
+
+    let data = fs::read_to_string(CONFIG_FILE).expect("[-] Failed to parse config");
+    let credentials :Vec<&str>= data.split("=").collect();
+
+    if credentials.len() != 3{
+        println!("[-] Parse config failed.");
+        std::process::exit(0);
+    }
+
+    let email = credentials[1].replace("\nkey","");
+    let key = credentials[credentials.len()-1].to_string();
+    // println!("Email:{}\nKey:{}\n",email.trim(),key.trim());
+    // println!("{:?},Length:{}",credentials,credentials.len());
+
+    return (email,key);
+}
+
 #[tokio::main]
 async fn do_action(hash_list:Vec<String>){
     let hash_str :String = hash_list.join(",");
 
-    let plan_text:Vec<String> = send_request(&hash_str).await;
-    //println!("PlanText: {:?}",plan_text);
+    let res_text:Vec<String> = send_request(&hash_str).await;
+    //println!("PlanText: {:?}",res_text);
     println!("------------------------------\n");
+    if res_text.get(0).unwrap() == "CMD5-ERROR:-1"{
+        println!("[-] Email或key无效,请修改askme.conf!");
+        std::process::exit(0);
+    }
+
     for(i,element) in hash_list.iter().enumerate(){
-        println!("{} {}",element,plan_text.get(i).unwrap());
+        let result = res_text.get(i).expect("[-] 查询出错!");
+        let plantext = match result.as_ref() {
+            "CMD5-ERROR:0" => "解密失败",
+            "CMD5-ERROR:-2" => "余额不足",
+            "CMD5-ERROR:-3" => "解密服务器故障",
+            "CMD5-ERROR:-4" => "不识别的密文",
+            "CMD5-ERROR:-7" => "不支持的类型",
+            "CMD5-ERROR:-8" => "API权限被禁止",
+            "CMD5-ERROR:-9" => "条数超过100条",
+            "CMD5-ERROR:-999" => "其他错误",
+            _ => result
+        };
+        println!("{} {}",element,plantext);
     }
     // for i in 0..hash_list.len(){
 
     // }
+}
+
+fn create_config_file(config_file:&str){
+    let mut file = File::create(&config_file).expect("[-] Failed to create .askme.conf");
+    file.write_all("email=EXAMPLE@example.com\nkey=61a7176c0177a2b35c85d9a6a2f6d145".as_bytes()).expect("[-] Failed to write.");
+    println!("[+] 配置文件askme.conf未找到，已自动创建，请手动填写API。");
+    std::process::exit(0);
 }
 
 fn remove_dumplicate(vec_raw :&Vec<String>)->Vec<String>{
@@ -57,8 +108,7 @@ fn remove_dumplicate(vec_raw :&Vec<String>)->Vec<String>{
 
 async fn send_request(hash:&String)->Vec<String>{
 
-    let cmd5_email = "1508695576@qq.com";
-    let cmd5_key = "6147176c0177a3a35c85d9a6a2f6d245";
+    let (cmd5_email,cmd5_key) = parse_config();
     let cmd5_api = format!("http://www.cmd5.com/api.ashx?email={}&key={}&hash={}",cmd5_email,cmd5_key,hash);
     // let cmd5_api = "http://www.cmd5.com/api.ashx?email=&key=&hash=";
 
