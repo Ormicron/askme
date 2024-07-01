@@ -30,7 +30,7 @@ fn main() {
     // println!("{}",hash_collection);
 
     if hash.len() !=0{
-        do_action(hash)
+        do_action(hash);
     }
 
 }
@@ -83,14 +83,11 @@ async fn do_action(hash_list:Vec<String>){
         };
         println!("{} {}",element,plantext);
     }
-    // for i in 0..hash_list.len(){
-
-    // }
 }
 
 fn create_config_file(config_file:&str){
     let mut file = File::create(&config_file).expect("[-] Failed to create .askme.conf");
-    file.write_all("email=EXAMPLE@example.com\nkey=61a7176c0177a2b35c85d9a6a2f6d145".as_bytes()).expect("[-] Failed to write.");
+    file.write_all("email=EXAMPLE@example.com\nkey=21a7176c0277f2b25c85d9a6a2e6c421".as_bytes()).expect("[-] Failed to write.");
     println!("[+] 配置文件askme.conf未找到，已自动创建，请手动填写API。");
     std::process::exit(0);
 }
@@ -125,13 +122,12 @@ async fn send_request(hash:&String)->Vec<String>{
         let result_text :Vec<String> = response.text().await.unwrap().split("	")
             .map(|s|s.trim().to_string())
             .collect();
-        return result_text
+        return result_text;
         // return response.text().await.unwrap();
         //println!("{}",response.text().await.unwrap());
         //result:admin	123456
     }else{
         println!("{}","[-] 请求失败");
         std::process::exit(0);
-        // return Vec::new();
     }
 }

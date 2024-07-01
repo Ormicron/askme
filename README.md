@@ -19,4 +19,10 @@ e6e061838856bf47e1de730719fb2609 admin@123
 7a4fcb0a976ee35dd4a3bd256373c266 解密失败
 ```
 
-**使用前需要在askme.conf中配置查询的用户凭据。**
+**使用前需要在askme.conf中配置查询的用户凭据(首次运行程序会自动生成):**
+
+```ini
+email=EXAMPLE@qq.com
+key=KEYKEYKEY
+```
+
