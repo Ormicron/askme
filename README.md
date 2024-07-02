@@ -3,7 +3,7 @@ askme是一个使用Rust编写的程序，通过调用CMD5 API实现密文反查
 
 支持两种查询模式:
 ```bash
-askme.exe hash //单个查询
+askme.exe hash //单个查询,重复行会自动去重
 ```
 或stdin批量查询:
 ```cmd

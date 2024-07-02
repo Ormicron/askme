@@ -40,7 +40,7 @@ fn parse_config()->(String,String){
         create_config_file(&CONFIG_FILE);
     }
 
-    let data = fs::read_to_string(CONFIG_FILE).expect("[-] Failed to parse config");
+    let data = fs::read_to_string(CONFIG_FILE).expect("[-] 解析配置文件失败!");
     let credentials :Vec<&str>= data.split("=").collect();
 
     if credentials.len() != 3{
@@ -87,8 +87,8 @@ async fn do_action(hash_list:Vec<String>){
 
 fn create_config_file(config_file:&str){
     let mut file = File::create(&config_file).expect("[-] Failed to create .askme.conf");
-    file.write_all("email=EXAMPLE@example.com\nkey=21a7176c0277f2b25c85d9a6a2e6c421".as_bytes()).expect("[-] Failed to write.");
-    println!("[+] 配置文件askme.conf未找到，已自动创建，请手动填写API。");
+    file.write_all("email=EXAMPLE@example.com\nkey=21a7176c0277f2b25c85d9a6a2e6c421".as_bytes()).expect("[-] 写入配置文件失败!");
+    println!("[+] 配置文件askme.conf未找到，已自动创建，请手动填写Key。");
     std::process::exit(0);
 }
 
